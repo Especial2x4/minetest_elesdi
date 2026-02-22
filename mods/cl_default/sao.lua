@@ -184,7 +184,7 @@ minetest.register_entity(":default:rat", RatSAO)
 -- Cisco
 --
 
-local Cisco = {
+local CiscoSAO = {
 	initial_properties = {
 		physical = true,
 		collide_with_objects = false,
@@ -204,13 +204,13 @@ local Cisco = {
 	sound_timer = 0,
 }
 
-function Cisco:on_activate(staticdata, dtime_s)
+function CiscoSAO:on_activate(staticdata, dtime_s)
 	self.object:set_yaw(math.random(0, 6))
 	self.object:set_acceleration(vector.new(0, -gravity, 0))
 	self.object:set_armor_groups({punch_operable=1})
 end
 
-function Cisco:on_step(dtime, moveresult)
+function CiscoSAO:on_step(dtime, moveresult)
 	if not self.is_active then
 		-- FIXME physics are actually turned off if inactive
 		if not limit_interval(self, "inactive_interval", dtime, 0.5) then
@@ -269,7 +269,7 @@ function Cisco:on_step(dtime, moveresult)
 	self.oldpos = pos
 end
 
-function Cisco:on_punch(hitter)
+function CiscoSAO:on_punch(hitter)
 	if hitter and hitter:is_player() then
 		local item = "default:cisco"
 		minetest.log("action", hitter:get_player_name() .. " picked up " .. item)
@@ -280,7 +280,7 @@ function Cisco:on_punch(hitter)
 	self.object:remove()
 end
 
-minetest.register_entity(":default:cisco", Cisco)
+minetest.register_entity(":default:cisco", CiscoSAO)
 
 --
 -- Oerkki1SAO
