@@ -179,6 +179,109 @@ end
 
 minetest.register_entity(":default:rat", RatSAO)
 
+
+--
+-- Cisco
+--
+
+local Cisco = {
+	initial_properties = {
+		physical = true,
+		collide_with_objects = false,
+		collisionbox = {-1/3, 0, -1/3, 1/3, 2/3, 1/3},
+		selectionbox = {-1/3, 0, -1/3, 1/3, 1/2, 1/3},
+		visual = "mesh",
+		mesh = "cisco.obj",
+		textures = {"cisco.png"},
+		backface_culling = false,
+	},
+
+	is_active = false,
+	inactive_interval = 0,
+	oldpos = vector.zero(),
+	counter1 = 0,
+	counter2 = 0,
+	sound_timer = 0,
+}
+
+function Cisco:on_activate(staticdata, dtime_s)
+	self.object:set_yaw(math.random(0, 6))
+	self.object:set_acceleration(vector.new(0, -gravity, 0))
+	self.object:set_armor_groups({punch_operable=1})
+end
+
+function Cisco:on_step(dtime, moveresult)
+	if not self.is_active then
+		-- FIXME physics are actually turned off if inactive
+		if not limit_interval(self, "inactive_interval", dtime, 0.5) then
+			return
+		end
+	end
+
+	-- Move around if some player is close
+	local pos = self.object:get_pos()
+	self.is_active = false
+	for _, player in ipairs(minetest.get_connected_players()) do
+		if vector.distance(player:get_pos(), pos) < 10 then
+			self.is_active = true
+		end
+	end
+
+	local vel = self.object:get_velocity()
+	if not self.is_active then
+		vel.x = 0
+		vel.z = 0
+	else
+		-- Move around
+		local yaw = self.object:get_yaw()
+		local dir = vector.new(math.cos(yaw), 0, math.sin(yaw))
+		local speed = 2
+		vel.x = speed * dir.x
+		vel.z = speed * dir.z
+
+		if moveresult.touching_ground and vector.distance(self.oldpos, pos)
+			< dtime * speed / 2 then
+			self.counter1 = self.counter1 - dtime
+			if self.counter1 < 0 then
+				self.counter1 = self.counter1 + 1
+				vel.y = 5
+			end
+		end
+
+		self.counter2 = self.counter2 - dtime
+		if self.counter2 < 0 then
+			self.counter2 = self.counter2 + math.random(0, 300) / 100
+			self.object:set_yaw(yaw + math.random(-100, 100) / 100 * math.pi)
+		end
+
+		self.sound_timer = self.sound_timer - dtime
+		if self.sound_timer < 0 then
+			if moveresult.touching_ground and default.modernize.sounds then
+				minetest.sound_play("rat", {
+					pos = pos,
+				}, true)
+			end
+			self.sound_timer = self.sound_timer + 0.1 * math.random(40, 70)
+		end
+	end
+	self.object:set_velocity(vel)
+
+	self.oldpos = pos
+end
+
+function Cisco:on_punch(hitter)
+	if hitter and hitter:is_player() then
+		local item = "default:cisco"
+		minetest.log("action", hitter:get_player_name() .. " picked up " .. item)
+		if not minetest.is_creative_enabled(hitter:get_player_name()) then
+			hitter:get_inventory():add_item("main", item)
+		end
+	end
+	self.object:remove()
+end
+
+minetest.register_entity(":default:cisco", Cisco)
+
 --
 -- Oerkki1SAO
 --

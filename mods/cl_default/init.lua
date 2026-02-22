@@ -160,6 +160,8 @@ default.item_to_entity = function(pos, itemstack)
 		return 1, minetest.add_entity(pos, "default:rat")
 	elseif itemstack:get_name() == "default:firefly" then
 		return 1, minetest.add_entity(pos, "default:firefly")
+	elseif itemstack:get_name() == "default:cisco" then
+	  return 1, minetest.add_entity(pos, "default:cisco")
 	end
 	return itemstack:get_count(), minetest.add_item(pos, itemstack)
 end
@@ -1398,6 +1400,11 @@ minetest.register_craftitem(":default:rat", {
 	groups = { },
 })
 
+minetest.register_craftitem(":default:cisco", {
+    description = "Cisco",
+    inventory_image = "cisco.png",
+})
+
 minetest.register_craftitem(":default:cooked_rat", {
 	description = S("Cooked Rat"),
 	inventory_image = "cooked_rat.png",
@@ -1751,3 +1758,24 @@ dofile(modpath .. "/lbm.lua")
 if minetest.settings:get_bool("minetest_classic_internal_test") then
 	dofile(modpath .. "/test.lua")
 end
+
+
+---
+-- prueba para spawnear Cisco
+---
+
+minetest.register_chatcommand("cisco", {
+    description = "Spawn Cisco cerca del jugador",
+    func = function(name)
+        local player = minetest.get_player_by_name(name)
+        if not player then return end
+
+        local pos = player:get_pos()
+        local dir = player:get_look_dir()
+
+        local spawn_pos = vector.add(pos, vector.multiply(dir, 2))
+        spawn_pos.y = spawn_pos.y + 1
+
+        minetest.add_entity(spawn_pos, "default:cisco")
+    end
+})
